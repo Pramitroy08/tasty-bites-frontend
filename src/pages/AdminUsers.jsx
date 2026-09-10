@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = `${import.meta.env.VITE_API_URL}/api/users`;
 
 function AdminUsers() {
   const [users, setUsers] = useState([]);

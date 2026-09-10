@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const ORDER_API = "http://localhost:5000/api/orders";
+const ORDER_API = `${import.meta.env.VITE_API_URL}/api/orders`;
 
 function Checkout() {
   const navigate = useNavigate();

@@ -17,7 +17,7 @@ function AdminOrders() {
       setError("");
 
       const response = await fetch(
-        "http://localhost:5000/api/orders/admin/all",
+        `${import.meta.env.VITE_API_URL}/api/orders/admin/all`,
         {
           method: "GET",
           headers: {
