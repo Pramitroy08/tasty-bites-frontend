@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import MenuCard from "../components/MenuCard";
 
-const API_URL = "http://localhost:5000/api/menu-items";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function Menu() {
   const [menuItems, setMenuItems] = useState([]);

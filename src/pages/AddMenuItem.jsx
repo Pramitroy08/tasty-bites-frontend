@@ -1,31 +1,26 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-const API_URL = "http://localhost:5000/api/menu-items";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-function AddMenuItem() {
+function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    category: "Main Course",
-    price: "",
-    availability: true,
-    image: ""
+    email: "",
+    password: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value
-    }));
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -35,404 +30,313 @@ function AddMenuItem() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        throw new Error(
-          "You are not logged in as an admin."
-        );
-      }
-
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...formData,
-          price: Number(formData.price)
-        })
-      });
+      const response = await fetch(
+        `${API_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      // Normal user login must NOT accept admin accounts
+      if (data.user.role === "admin") {
         throw new Error(
-          data.message || "Failed to create menu item"
+          "Admin account detected. Please use the Admin Login page."
         );
       }
 
-      alert("Menu item added successfully!");
+      // Context login functionality remains unchanged
+      login(data.token, data.user);
 
-      navigate("/admin/menu-items");
+      alert("Login successful!");
 
+      navigate("/");
     } catch (error) {
-      console.error("Add menu item error:", error);
+      console.error("Login error:", error);
 
-      setError(
-        error.message || "Something went wrong"
-      );
-
+      setError(error.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen relative overflow-hidden bg-[#fffaf5] flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
 
-      {/* Decorative Background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -right-32 h-80 w-80 rounded-full bg-orange-200/30 blur-3xl" />
-        <div className="absolute top-1/2 -left-32 h-80 w-80 rounded-full bg-rose-200/30 blur-3xl" />
-        <div className="absolute -bottom-32 right-1/3 h-80 w-80 rounded-full bg-amber-200/30 blur-3xl" />
-      </div>
+      {/* Decorative background elements */}
+      <div className="absolute -top-32 -right-32 w-80 h-80 bg-orange-200/40 rounded-full blur-3xl" />
+      <div className="absolute -bottom-40 -left-32 w-96 h-96 bg-amber-200/40 rounded-full blur-3xl" />
+      <div className="absolute top-1/3 left-1/4 w-32 h-32 bg-red-100/50 rounded-full blur-3xl" />
 
-      <div className="mx-auto max-w-6xl">
+      {/* Main container */}
+      <div className="relative w-full max-w-5xl">
 
-        {/* Header */}
-        <div className="mb-8">
+        <div className="grid lg:grid-cols-2 overflow-hidden rounded-3xl bg-white/80 backdrop-blur-xl border border-white shadow-[0_25px_80px_rgba(120,53,15,0.12)]">
 
-          <Link
-            to="/admin/menu-items"
-            className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-orange-600"
-          >
-            <span className="text-lg">←</span>
-            Back to Menu Items
-          </Link>
+          {/* LEFT - Branding / Visual Section */}
+          <div className="hidden lg:flex relative min-h-[650px] overflow-hidden bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 p-12 flex-col justify-between text-white">
 
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            {/* Decorative circles */}
+            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/10" />
+            <div className="absolute bottom-20 -left-28 w-72 h-72 rounded-full bg-white/10" />
+            <div className="absolute top-1/2 right-10 w-20 h-20 rounded-full bg-white/10" />
 
-            <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white/70 px-3 py-1.5 text-xs font-semibold text-orange-700 shadow-sm backdrop-blur">
-                <span className="h-2 w-2 rounded-full bg-orange-500" />
-                MENU MANAGEMENT
+            {/* Branding */}
+            <div className="relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-2xl">
+                  🍴
+                </div>
+
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight">
+                    TastyBites
+                  </h1>
+                  <p className="text-orange-100 text-xs">
+                    Taste. Comfort. Happiness.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Main content */}
+            <div className="relative z-10 max-w-md">
+
+              <div className="text-6xl mb-8">
+                🍕
               </div>
 
-              <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                Add Menu Item
+              <h2 className="text-4xl xl:text-5xl font-bold leading-tight tracking-tight">
+                Good food.
+                <br />
+                Great moments.
               </h2>
 
-              <p className="mt-2 max-w-xl text-sm leading-6 text-gray-500 sm:text-base">
-                Create a new dish and add it to your restaurant menu.
-                Provide accurate details so customers can easily discover it.
+              <p className="mt-6 text-orange-50/90 text-base leading-7 max-w-sm">
+                Discover delicious meals, explore your favorites, and
+                experience food that makes every moment special.
               </p>
+
+              {/* Feature pills */}
+              <div className="flex flex-wrap gap-3 mt-8">
+                <span className="px-4 py-2 rounded-full bg-white/10 border border-white/15 text-sm backdrop-blur-sm">
+                  ✨ Freshly prepared
+                </span>
+
+                <span className="px-4 py-2 rounded-full bg-white/10 border border-white/15 text-sm backdrop-blur-sm">
+                  ❤️ Made with love
+                </span>
+              </div>
             </div>
 
-          </div>
-        </div>
-
-
-        {/* Main Card */}
-        <div className="overflow-hidden rounded-2xl border border-white/80 bg-white/85 shadow-[0_20px_60px_rgba(0,0,0,0.08)] backdrop-blur-xl">
-
-          {/* Card Header */}
-          <div className="border-b border-gray-100 bg-gradient-to-r from-orange-50/80 to-amber-50/60 px-5 py-5 sm:px-8">
-
-            <div className="flex items-center gap-4">
-
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-2xl shadow-sm">
-                🍽️
-              </div>
-
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">
-                  Item Information
-                </h3>
-
-                <p className="text-sm text-gray-500">
-                  Enter the details of your new menu item below.
-                </p>
-              </div>
-
+            {/* Bottom text */}
+            <div className="relative z-10 text-sm text-orange-100">
+              © {new Date().getFullYear()} TastyBites
             </div>
-
           </div>
 
+          {/* RIGHT - Login Form */}
+          <div className="p-7 sm:p-10 lg:p-12 xl:p-14 flex items-center">
 
-          {/* Form */}
-          <div className="p-5 sm:p-8 lg:p-10">
+            <div className="w-full max-w-md mx-auto">
 
-            {error && (
-              <div className="mb-7 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {/* Mobile branding */}
+              <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
 
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-100 font-bold">
-                  !
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-xl shadow-lg shadow-orange-200">
+                  🍴
                 </div>
 
                 <div>
-                  <p className="font-semibold">
-                    Unable to add menu item
-                  </p>
+                  <h1 className="text-xl font-bold text-gray-900">
+                    TastyBites
+                  </h1>
 
-                  <p className="mt-1 text-red-600">
+                  <p className="text-xs text-gray-500">
+                    Taste. Comfort. Happiness.
+                  </p>
+                </div>
+
+              </div>
+
+              {/* Header */}
+              <div className="text-center lg:text-left">
+
+                <p className="text-orange-600 font-semibold text-sm tracking-wide uppercase">
+                  Welcome back
+                </p>
+
+                <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">
+                  Sign in to your account
+                </h2>
+
+                <p className="mt-3 text-gray-500 text-sm sm:text-base">
+                  Continue your delicious journey with TastyBites.
+                </p>
+
+              </div>
+
+              {/* Error message */}
+              {error && (
+                <div className="mt-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-600">
+
+                  <span className="text-base mt-0.5">
+                    ⚠️
+                  </span>
+
+                  <p className="leading-5">
                     {error}
                   </p>
-                </div>
-
-              </div>
-            )}
-
-
-            <form onSubmit={handleSubmit}>
-
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-
-                {/* Name */}
-                <div className="md:col-span-2">
-
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                    Item Name
-                  </label>
-
-                  <div className="relative">
-
-                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg">
-                      🍴
-                    </span>
-
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="e.g. Classic Cheeseburger"
-                      required
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50/70 py-3.5 pl-12 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 hover:border-gray-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100"
-                    />
-
-                  </div>
 
                 </div>
+              )}
 
+              {/* Form */}
+              <form
+                onSubmit={handleSubmit}
+                className="mt-8 space-y-5"
+              >
 
-                {/* Description */}
-                <div className="md:col-span-2">
-
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                    Description
-                  </label>
-
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Describe the ingredients, taste, preparation style, or special features..."
-                    rows="4"
-                    required
-                    className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50/70 px-4 py-3.5 text-sm leading-6 text-gray-900 outline-none transition placeholder:text-gray-400 hover:border-gray-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100"
-                  />
-
-                  <p className="mt-2 text-xs text-gray-400">
-                    Keep the description clear and appealing to customers.
-                  </p>
-
-                </div>
-
-
-                {/* Category */}
+                {/* Email */}
                 <div>
-
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                    Category
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
+                  >
+                    Email address
                   </label>
 
                   <div className="relative">
 
-                    <span className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-lg">
-                      🏷️
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                      ✉
                     </span>
 
-                    <select
-                      name="category"
-                      value={formData.category}
+                    <input
+                      id="email"
+                      type="email"
+                      name="email"
+                      value={formData.email}
                       onChange={handleChange}
-                      className="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50/70 px-4 py-3.5 pl-12 pr-10 text-sm text-gray-800 outline-none transition hover:border-gray-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100"
-                    >
-                      <option value="Starter">
-                        Starter
-                      </option>
-
-                      <option value="Main Course">
-                        Main Course
-                      </option>
-
-                      <option value="Dessert">
-                        Dessert
-                      </option>
-
-                      <option value="Beverage">
-                        Beverage
-                      </option>
-                    </select>
-
-                    <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                      ▾
-                    </span>
+                      required
+                      placeholder="you@example.com"
+                      className="w-full h-13 border border-gray-200 bg-gray-50/70 rounded-xl pl-11 pr-4 py-3.5 text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-200 focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
+                    />
 
                   </div>
-
                 </div>
 
-
-                {/* Price */}
+                {/* Password */}
                 <div>
-
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                    Price
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
+                  >
+                    Password
                   </label>
 
                   <div className="relative">
 
-                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-orange-600">
-                      ₹
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                      🔒
                     </span>
 
                     <input
-                      type="number"
-                      name="price"
-                      value={formData.price}
+                      id="password"
+                      type="password"
+                      name="password"
+                      value={formData.password}
                       onChange={handleChange}
-                      placeholder="299"
-                      min="0"
                       required
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50/70 py-3.5 pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 hover:border-gray-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100"
+                      placeholder="Enter your password"
+                      className="w-full h-13 border border-gray-200 bg-gray-50/70 rounded-xl pl-11 pr-4 py-3.5 text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-200 focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
                     />
 
                   </div>
-
                 </div>
 
-
-                {/* Image */}
-                <div className="md:col-span-2">
-
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                    Image URL
-                  </label>
-
-                  <div className="relative">
-
-                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg">
-                      🖼️
-                    </span>
-
-                    <input
-                      type="url"
-                      name="image"
-                      value={formData.image}
-                      onChange={handleChange}
-                      placeholder="https://images.unsplash.com/..."
-                      required
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50/70 py-3.5 pl-12 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 hover:border-gray-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100"
-                    />
-
-                  </div>
-
-                  <p className="mt-2 text-xs text-gray-400">
-                    Use a direct image URL for the menu item.
-                  </p>
-
-                </div>
-
-
-                {/* Availability */}
-                <div className="md:col-span-2">
-
-                  <div className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-
-                    <div className="flex items-center gap-4">
-
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-100 text-lg">
-                        ✓
-                      </div>
-
-                      <div>
-                        <p className="text-sm font-semibold text-gray-800">
-                          Item Availability
-                        </p>
-
-                        <p className="mt-0.5 text-xs text-gray-500">
-                          {formData.availability
-                            ? "Customers can currently order this item."
-                            : "This item will be hidden from available menu items."}
-                        </p>
-                      </div>
-
-                    </div>
-
-
-                    {/* Switch */}
-                    <label className="relative inline-flex cursor-pointer items-center">
-
-                      <input
-                        type="checkbox"
-                        name="availability"
-                        checked={formData.availability}
-                        onChange={handleChange}
-                        className="peer sr-only"
-                      />
-
-                      <div className="h-7 w-12 rounded-full bg-gray-300 transition peer-checked:bg-green-500 peer-focus:ring-4 peer-focus:ring-green-100 after:absolute after:left-[3px] after:top-[3px] after:h-[22px] after:w-[22px] after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-5" />
-
-                    </label>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-
-              {/* Bottom Actions */}
-              <div className="mt-8 flex flex-col-reverse gap-3 border-t border-gray-100 pt-7 sm:flex-row sm:justify-end">
-
-                <Link
-                  to="/admin/menu-items"
-                  className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-sm font-semibold text-gray-600 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
-                >
-                  Cancel
-                </Link>
-
+                {/* Login button */}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-200 transition hover:from-orange-600 hover:to-amber-600 hover:shadow-xl hover:shadow-orange-200 focus:outline-none focus:ring-4 focus:ring-orange-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-orange-500 to-red-500 py-3.5 text-sm sm:text-base font-semibold text-white shadow-lg shadow-orange-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-200 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                 >
 
-                  {loading ? (
-                    <>
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                      Adding...
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-base">+</span>
-                      Add Menu Item
-                    </>
-                  )}
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    {loading ? (
+                      <>
+                        <span className="h-5 w-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                        Logging in...
+                      </>
+                    ) : (
+                      <>
+                        Login
+                        <span className="transition-transform duration-200 group-hover:translate-x-1">
+                          →
+                        </span>
+                      </>
+                    )}
+                  </span>
 
                 </button>
 
+              </form>
+
+              {/* Divider */}
+              <div className="relative my-7">
+
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+
+                <div className="relative flex justify-center">
+                  <span className="bg-white px-4 text-xs text-gray-400">
+                    New to TastyBites?
+                  </span>
+                </div>
+
               </div>
 
-            </form>
+              {/* Register */}
+              <p className="text-center text-sm text-gray-500">
+
+                Don't have an account?{" "}
+
+                <Link
+                  to="/register"
+                  className="font-semibold text-orange-600 hover:text-orange-700 hover:underline underline-offset-4 transition-colors"
+                >
+                  Create an account
+                </Link>
+
+              </p>
+
+              {/* Trust indicator */}
+              <div className="mt-8 flex items-center justify-center gap-2 text-xs text-gray-400">
+                <span className="text-green-500">
+                  ●
+                </span>
+                Secure account authentication
+              </div>
+
+            </div>
 
           </div>
 
         </div>
 
-
-        {/* Footer Hint */}
-        <div className="mt-5 text-center text-xs text-gray-400">
-          Make sure all item details are accurate before adding it to the menu.
-        </div>
-
       </div>
-
     </div>
   );
 }
 
-export default AddMenuItem;
+export default Login;

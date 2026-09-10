@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-const API_URL = "http://localhost:5000/api/menu-items";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function AdminMenuItems() {
   const [menuItems, setMenuItems] = useState([]);
