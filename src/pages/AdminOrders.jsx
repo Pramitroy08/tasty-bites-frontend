@@ -51,7 +51,7 @@ function AdminOrders() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:5000/api/orders/admin/${orderId}/status`,
+        `${import.meta.env.VITE_API_URL}/api/orders/admin/${orderId}/status`,
         {
           method: "PUT",
           headers: {
