@@ -97,7 +97,7 @@ function AdminLayout() {
         bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950
         border-r border-white/10 shadow-2xl
         transform transition-transform duration-300 ease-out
-        md:translate-x-0 md:static md:min-h-screen md:shadow-xl
+        md:translate-x-0 md:sticky md:top-0 md:h-screen md:shadow-xl
         ${
           sidebarOpen
             ? "translate-x-0"
