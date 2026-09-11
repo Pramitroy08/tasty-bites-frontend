@@ -230,7 +230,7 @@ function AdminLayout() {
         {/* ================= SIDEBAR FOOTER ================= */}
         <div className="relative p-4 border-t border-white/10">
 
-          <Link
+          {/* <Link
             to="/"
             className="group flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-semibold text-slate-400 hover:bg-white/[0.06] hover:text-white transition-all"
           >
@@ -243,10 +243,10 @@ function AdminLayout() {
               Back to Website
             </span>
 
-          </Link>
+          </Link> */}
 
           <div className="mt-4 px-4 text-[10px] text-slate-600 tracking-wide">
-            TASTYBITES ADMIN • v1.0
+            <b>TASTYBITES ADMIN • v1.0</b>
           </div>
 
         </div>
